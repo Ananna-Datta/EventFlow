@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { toast } from 'react-toastify';
+import { AuthContext } from '../Provider/AuthProvider';
 
 const AddEvent = () => {
+  const { user } = useContext(AuthContext); 
   const [form, setForm] = useState({
     title: '',
     name: '',
@@ -22,10 +24,13 @@ const AddEvent = () => {
       ...form,
       attendeeCount: 0,
       datetime: `${form.date}T${form.time}`,
+      userEmail: user?.email || "anonymous",
+      userId: user?.uid || "unknown",
+      postedAt: new Date().toISOString()
     };
 
     try {
-      const res = await fetch('http://localhost:5000/events', {
+      const res = await fetch('https://event-flow-server-three.vercel.app/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(eventData),

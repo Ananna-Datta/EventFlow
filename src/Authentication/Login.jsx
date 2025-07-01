@@ -1,14 +1,18 @@
 import React, { useState, useContext } from 'react';
-import bg from '../assets/Authentication/Authentication.png'; 
-import { Link, useNavigate } from 'react-router-dom';
+import bg from '../assets/Authentication/Authentication.png';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
 import { AuthContext } from '../Provider/AuthProvider';
 import { FcGoogle } from 'react-icons/fc';
 
 const Login = () => {
-  const { loginUser,loginWithGoogle } = useContext(AuthContext);
+  const { loginUser, loginWithGoogle } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // After login, go to previous route or home
+  const from = location.state?.from?.pathname || '/';
 
   const [form, setForm] = useState({
     email: '',
@@ -23,7 +27,6 @@ const Login = () => {
     e.preventDefault();
 
     const { email, password } = form;
-
     if (!email || !password) {
       toast.error('Please fill in all fields');
       return;
@@ -33,9 +36,19 @@ const Login = () => {
       await loginUser(email, password);
       toast.success('Login successful!');
       Swal.fire('Success!', 'You are now logged in.', 'success');
-      navigate('/'); 
+      navigate(from, { replace: true });
     } catch (error) {
       toast.error(error.message);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+      Swal.fire('Success!', 'Logged in with Google!', 'success');
+      navigate(from, { replace: true });
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
@@ -86,25 +99,18 @@ const Login = () => {
               Sign up
             </Link>
           </p>
+
           <div className="text-center">
-  <p className="text-sm my-2 text-gray-500">or</p>
-  <button
-    type="button"
-    onClick={async () => {
-      try {
-        await loginWithGoogle();
-        Swal.fire("Success!", "Logged in with Google!", "success");
-        navigate("/");
-      } catch (err) {
-        toast.error(err.message);
-      }
-    }}
-    className="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-  >
-    <FcGoogle size={22} />
-    <span className="font-medium text-sm">Continue with Google</span>
-  </button>
-</div>
+            <p className="text-sm my-2 text-gray-500">or</p>
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              className="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+            >
+              <FcGoogle size={22} />
+              <span className="font-medium text-sm">Continue with Google</span>
+            </button>
+          </div>
         </form>
       </div>
     </div>
